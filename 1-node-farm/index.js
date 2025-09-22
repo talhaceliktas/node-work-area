@@ -21,6 +21,16 @@ function callbackHell() {
       console.log(data2);
       fs.readFile("./txt/append.txt", "utf-8", (err, data3) => {
         console.log(data3);
+
+        fs.writeFile(
+          "./txt/final.txt",
+          `${data2}\n${data3}`,
+          "utf-8",
+          (err) => {
+            if (err) console.log(err);
+            else console.log("File has been written");
+          }
+        );
       });
     });
   });
@@ -35,6 +45,13 @@ async function cleanAsync() {
     "utf-8"
   );
   console.log(readThisData);
+  const appendData = await fsPromises.readFile("./txt/append.txt", "utf-8");
+  console.log(appendData);
+  await fsPromises.writeFile(
+    "./txt/final.txt",
+    `${readThisData}\n${appendData}`,
+    "utf-8"
+  );
 }
 
-callbackHell();
+cleanAsync();
