@@ -1,5 +1,6 @@
 const fs = require("fs");
 const http = require("http");
+const url = require("url");
 
 const data = fs.readFileSync(`${__dirname}/dev-data/data.json`);
 const dataObj = JSON.parse(data);
@@ -35,9 +36,9 @@ const replaceTemplate = (template, product) => {
 };
 
 const server = http.createServer((req, res) => {
-  const pathName = req.url;
+  const { query, pathname } = url.parse(req.url, true);
 
-  switch (pathName) {
+  switch (pathname) {
     case "/":
     case "/overview": {
       res.writeHead(200, {
@@ -53,9 +54,15 @@ const server = http.createServer((req, res) => {
 
       break;
     }
-    case "/product":
-      res.end("This is product");
+    case "/product": {
+      res.writeHead(200, { "content-type": "text/html" });
+      const product = dataObj[query.id];
+
+      const output = replaceTemplate(tempProduct, product);
+
+      res.end(output);
       break;
+    }
     case "/api":
       res.writeHead(200, { "content-type": "application/json" });
       res.end(data);
@@ -68,7 +75,7 @@ const server = http.createServer((req, res) => {
   }
 });
 
-const PORT = 8002;
+const PORT = 8000;
 
 server.listen(PORT, () => {
   console.log(`Listening to request on port ${PORT}`);
