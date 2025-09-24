@@ -2,6 +2,10 @@ const fs = require("fs");
 const http = require("http");
 const url = require("url");
 
+const slugify = require("slugify");
+
+const replaceTemplate = require("./modules/replaceTemplate");
+
 const data = fs.readFileSync(`${__dirname}/dev-data/data.json`);
 const dataObj = JSON.parse(data);
 
@@ -18,22 +22,10 @@ const tempProduct = fs.readFileSync(
   "utf-8"
 );
 
-const replaceTemplate = (template, product) => {
-  let output = template
-    .replaceAll(/{%PRODUCTNAME%}/g, product.productName)
-    .replaceAll(/{%IMAGE%}/g, product.image)
-    .replaceAll(/{%PRICE%}/g, product.price)
-    .replaceAll(/{%FROM%}/g, product.from)
-    .replaceAll(/{%NUTRIENTS%}/g, product.nutrients)
-    .replaceAll(/{%QUANTITY%}/g, product.quantity)
-    .replaceAll(/{%DESCRIPTION%}/g, product.description)
-    .replaceAll(/{%ID%}/g, product.id);
+const slugs = dataObj.map((el) => slugify(el.productName, { lower: true }));
+console.log(slugs);
 
-  if (!product.organic)
-    output = output.replaceAll(/{%NOT_ORGANIC%}/g, "not-organic");
-
-  return output;
-};
+console.log(slugify("Fresh Avocados", { lower: true }));
 
 const server = http.createServer((req, res) => {
   const { query, pathname } = url.parse(req.url, true);
