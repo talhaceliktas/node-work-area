@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 import replaceCabinTemplate from "./modules/replaceCabinTemplate.js";
@@ -8,29 +8,33 @@ import supabase from "./supabase.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-console.log(process.env.SUPABASE_URL);
+const templateOverview = readFileSync(
+  `${__dirname}/template-overview.html`,
+  "utf-8"
+);
+
+const templateCabin = readFileSync(`${__dirname}/template-cabin.html`, "utf-8");
+
+let cachedCabins = null;
+let lastFetch = 0;
+const REVALIDATE_TIME = 30 * 1000;
 
 const server = createServer(async (req, res) => {
   try {
-    const templateOverview = await readFile(
-      `${__dirname}/template-overview.html`,
-      "utf-8"
-    );
+    if (!cachedCabins || Date.now() - lastFetch > REVALIDATE_TIME) {
+      let { data: cabins, error } = await supabase
+        .from("cabins")
+        .select("*")
+        .order("name");
 
-    const templateCabin = await readFile(
-      `${__dirname}/template-cabin.html`,
-      "utf-8"
-    );
+      cachedCabins = cabins
+        .map((cabin) => replaceCabinTemplate(templateCabin, cabin))
+        .join("");
 
-    let { data: cabins, error } = await supabase
-      .from("cabins")
-      .select("*")
-      .order("name");
+      lastFetch = Date.now();
+    }
 
-    const settedTemplateCabins = cabins
-      .map((cabin) => replaceCabinTemplate(templateCabin, cabin))
-      .join("");
-    const output = templateOverview.replace(/{%CABINS%}/, settedTemplateCabins);
+    const output = templateOverview.replace(/{%CABINS%}/, cachedCabins);
 
     res.writeHead(200, { "content-type": "text/html" });
     res.end(output);
