@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon --watch test-hotel-page --ext mjs,js,json test-hotel-page/index.mjs"
+    "start": "nodemon --watch . --ext mjs,js,json index.mjs"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +14,9 @@
   "devDependencies": {
     "@types/node": "^24.5.2",
     "nodemon": "^3.1.10"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.58.0",
+    "dotenv": "^17.2.2"
   }
 }
